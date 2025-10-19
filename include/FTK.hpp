@@ -1,5 +1,4 @@
 #pragma once
-
 #include <iostream>
 #include "IndexedMinHeap.hpp"
 #include <random>
@@ -45,7 +44,7 @@ class FTK{
         std::vector<ReferenceHandler> referenceHandler;
 
         FTK(int DimensioneFinestra, DataHandler& handler, ThreadPool& pool)
-            : handler(handler), pool(pool), task_mancanti(0), DimensioneFinestra(DimensioneFinestra), k(max_items){
+            : handler(handler), pool(pool), task_mancanti(0), DimensioneFinestra(DimensioneFinestra), k(MAX_ITEMS){
             random_generator = RandomGeometric(1 - PROMOTION_PROBABILITY);
             total_iterations = handler.total_iterations;
             topc.resize(POOL_SIZE);
@@ -53,9 +52,10 @@ class FTK{
             referenceHandler.resize(POOL_SIZE);
         }
 
-        // Permetti il movimento se necessario
-        FTK(FTK&&) = default;                // Abilita il costruttore di spostamento
-        FTK& operator=(FTK&&) = default;     // Abilita l'operatore di assegnazione per spostamento
+        FTK(const FTK&) = delete;
+        FTK& operator=(const FTK&) = delete;
+        FTK(FTK&&) = delete;
+        FTK& operator=(FTK&&) = delete;
 
 
 
@@ -185,7 +185,7 @@ void saveOccorrenzeToCSV(FTK &ftk, const std::string& filename, float iterations
     auto occorrenze = ftk.get_topc();
     // Scrittura del file in UTF-8
     std::ofstream file(filename, std::ios::out | std::ios::binary);
-    file.imbue(std::locale(std::locale::classic(), new std::codecvt_utf8<char>));
+    // file.imbue(std::locale(std::locale::classic(), new std::codecvt_utf8<char>));
 
     file<<"# Total_Iterations; SpaceFilter; TimeFilter; POOL_SIZE; DIM_MULTI_LEVEL\n";
     int time = ftk.time;
