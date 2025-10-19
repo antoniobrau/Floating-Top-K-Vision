@@ -1,47 +1,35 @@
-name: macos-portable
-on: [push, pull_request]
+name: macOS portable build
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
 
-      - name: Strumenti build
+      - name: Setup Homebrew
         run: |
           brew update
-          brew install opencv dylibbundler
+          brew install opencv cmake
 
       - name: Configure
         run: |
-          OPENCV_PREFIX=$(brew --prefix opencv)
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DOpenCV_DIR="$OPENCV_PREFIX/lib/cmake/opencv4"
-
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
       - name: Build
-        run: cmake --build build --config Release --parallel
+        run: cmake --build build --config Release -- -j
 
-      - name: Bundle dylib
-        shell: bash
+      - name: Package artifact
         run: |
-          mkdir -p dist/bin dist/lib
-          # copia gli eseguibili prodotti (adatta il pattern se serve)
-          find build -type f -perm +111 -maxdepth 2 -exec cp {} dist/bin \; 2>/dev/null || true
-          for EXE in dist/bin/*; do
-            [ -f "$EXE" ] || continue
-            dylibbundler -od -b -x "$EXE" -d dist/lib -p @executable_path/../lib -s "$(brew --prefix opencv)"/lib
-          done
-          cat > dist/README.txt <<'EOF'
-Avvio su macOS senza installare OpenCV:
-1) xattr -dr com.apple.quarantine dist
-2) ./dist/bin/<nome_eseguibile>
-Le librerie sono in dist/lib e referenziate con @executable_path/../lib.
-EOF
-
-      - name: Zip artifact
-        run: (cd dist && zip -r ../macos-portable.zip .)
+          mkdir -p artifact
+          cp build/Release/simul_multi_file artifact/ || cp build/simul_multi_file artifact/
+          # opzionale: copia config o risorse necessarie
+          [ -f config.txt ] && cp config.txt artifact/ || true
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: macos-portable
-          path: macos-portable.zip
+          name: macOS-build
+          path: artifact
