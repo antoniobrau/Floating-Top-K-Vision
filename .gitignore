@@ -1,6 +1,5 @@
 build/
 dist/
-data/
 .vscode/
 *.dll
 *.exe
