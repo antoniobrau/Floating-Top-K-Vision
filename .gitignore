@@ -1,0 +1,9 @@
+build/
+dist/
+data/
+.vscode/
+*.dll
+*.exe
+*.pdb
+*.lib
+*.avi
